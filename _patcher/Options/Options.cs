@@ -22,9 +22,15 @@ namespace _patcher.Options
                 config.csChange,
                 new EventHandler(config.ToggleCsChange));
 
+            CheckBox disableScoreSub = new CheckBox("Disable Score Submission",
+                "Prevents score submitting when activated.",
+                config.DisableScoreSubmission,
+                new EventHandler(config.ToggleDisableScoreSub));
+
             Array optionsChildren = Element.createArray(
                 alwaysShowMisses, 
-                csChanger);
+                csChanger,
+                disableScoreSub);
 
             Section section = new Section("Patches");
             section.SetChildren(optionsChildren);
