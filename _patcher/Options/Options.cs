@@ -14,13 +14,13 @@ namespace _patcher.Options
         {
             CheckBox alwaysShowMisses = new CheckBox("Patch Relax",
                 "Removes relax limitation, Allows you to see miss and Combo break sound.",
-                config.PatchRelax(),
-                new EventHandler(config.on_ShowMisses));
+                config.PatchRelax,
+                new EventHandler(config.TogglePatchRelax));
 
             CheckBox csChanger = new CheckBox("0.0 Circle Size",
                 "Makes Circle Size on maps to 0 (Disables score submission!)",
-                config.csChange(),
-                new EventHandler(config.on_csChange));
+                config.csChange,
+                new EventHandler(config.ToggleCsChange));
 
             Array optionsChildren = Element.createArray(
                 alwaysShowMisses, 

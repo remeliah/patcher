@@ -60,7 +60,7 @@ namespace _patcher.patch
         public static double CSChange(double DifficultyCircleSize)
         {
             // AASPJFAFOPKAJSIOFJOASIJFIOASJFOPASOF
-            if (Options.Options.config.csChange())
+            if (Options.Options.config.csChange)
                 return 0.0; // maybe in the future im gon use with OptionSlider / Textbox
 
             return DifficultyCircleSize;
@@ -112,6 +112,6 @@ namespace _patcher.patch
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool PatchRelax() => !Options.Options.config.PatchRelax();
+        public static bool PatchRelax() => !Options.Options.config.PatchRelax;
     }
 }

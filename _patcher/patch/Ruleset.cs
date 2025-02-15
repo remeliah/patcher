@@ -51,6 +51,6 @@ namespace _patcher.patch
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool PatchRelax() => !Options.Options.config.PatchRelax();
+        public static bool PatchRelax() => !Options.Options.config.PatchRelax;
     }
 }
