@@ -61,24 +61,11 @@ namespace _patcher.patch
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            uint r = 24;
-            uint remaining = r;
-            int m = 0;
-            OpCode[] sign = Signature.Take(Signature.Length - 24).ToArray();
-            foreach (var instr in instructions)
-            {
-                CodeInstruction res;
+            var codes = new List<CodeInstruction>(instructions);
 
-                // kalo signature smuanya cocok trus masih ad instr yg harus diganti
-                res = (sign.Length > 0 && remaining > 0 && m == sign.Length)
-                    ? (remaining--, new CodeInstruction(OpCodes.Nop)).Item2 // no-op instr
-                                                                            // tingkatin check nya kalo cocok sama bagian dri signature
-                    : (m = (sign.Length > 0 && remaining == r && instr.opcode == sign[m])
-                        ? m + 1 : 0,
-                        instr).Item2; // return instr asli kalau ga ada perubahan
-
-                yield return res;
-            }
+            // TODO: use patchrelax to check
+            codes.RemoveRange(10, 24);
+            return codes.AsEnumerable();
         }
     }
 }

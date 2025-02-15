@@ -39,22 +39,13 @@ namespace _patcher.patch
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = new List<CodeInstruction>(instructions);
-            for (int i = 0; i <= codes.Count - Signature.Length; i++)
-            {
-                if (codes.Skip(i)
-                    .Take(Signature.Length)
-                    .Select((code, index) => code.opcode == Signature[index])
-                    .All(match => match))
-                {
-                    // TODO: remove Relaxing2 too, again fuck autopilot nobody plays it
-                    codes.RemoveAt(i + Signature.Length - 4); // remove ldsfld
-                    codes.Insert(i + Signature.Length - 4, // insert ShowMisses 
-                        new CodeInstruction(OpCodes.Call,
-                        typeof(PatchRelaxComboBreak).GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)));
-
-                    break;
-                }
-            }
+            // TODO: remove Relaxing2 too, again fuck autopilot nobody plays it
+            codes.RemoveAt(1557); // remove ldsfld
+            codes.Insert(1557, // insert ShowMisses 
+                new CodeInstruction(OpCodes.Call,
+                typeof(PatchRelaxComboBreak).GetMethod(nameof(PatchRelax),
+                BindingFlags.Public | BindingFlags.Static))
+            );
 
             return codes.AsEnumerable();
         }

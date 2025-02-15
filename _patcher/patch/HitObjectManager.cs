@@ -47,25 +47,13 @@ namespace _patcher.patch
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = new List<CodeInstruction>(instructions);
-            for (int i = 0; i <= codes.Count - Signature.Length; i++)
-            {
-                if (codes.Skip(i)
-                    .Take(Signature.Length)
-                    .Select((code, index) => code.opcode == Signature[index])
-                    .All(match => match))
-                {
-                    // theres a simpler way to insert this without using for loop
-                    // but thsi is funny so its fine
-                    int convR8 = i + 12;
-                    codes.Insert(convR8 + 1, 
-                        new CodeInstruction(OpCodes.Call, 
-                        typeof(HitObjectManager).GetMethod(nameof(CSChange))));
+            // insert call after convr8
+            codes.Insert(86, 
+                new CodeInstruction(OpCodes.Call,
+                typeof(HitObjectManager).GetMethod(nameof(CSChange)))
+            );
 
-                    break;
-                }
-            }
-
-            return codes.AsEnumerable();
+            return codes;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -113,22 +101,12 @@ namespace _patcher.patch
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = new List<CodeInstruction>(instructions);
-            for (int i = 0; i <= codes.Count - Signature.Length; i++)
-            {
-                if (codes.Skip(i)
-                    .Take(Signature.Length)
-                    .Select((code, index) => code.opcode == Signature[index])
-                    .All(match => match))
-                {
-                    // TODO: remove Relaxing2 too, wait.. fuck autopilot nobody plays it
-                    codes.RemoveAt(i + Signature.Length - 4); // remove ldsfld
-                    codes.Insert(i + Signature.Length - 4, // insert ShowMisses 
-                        new CodeInstruction(OpCodes.Call, 
-                        typeof(PatchRelaxMiss).GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)));
+            // TODO: remove Relaxing2 too, wait.. fuck autopilot nobody plays it
+            codes.RemoveAt(663); // remove ldsfld
+            codes.Insert(663, // insert ShowMisses 
+                new CodeInstruction(OpCodes.Call, 
+                typeof(PatchRelaxMiss).GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)));
 
-                    break;
-                }
-            }
 
             return codes.AsEnumerable();
         }
