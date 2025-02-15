@@ -58,6 +58,12 @@ namespace _patcher.patch
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool DisableScoreSubmission() => !Options.Options.config.csChange;
+        public static bool DisableScoreSubmission() 
+        { 
+            if (Options.Options.config.DisableScoreSubmission) 
+                return true;
+
+            return !Options.Options.config.csChange; 
+        }
     }
 }
