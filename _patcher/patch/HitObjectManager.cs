@@ -103,12 +103,15 @@ namespace _patcher.patch
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = new List<CodeInstruction>(instructions);
-            // TODO: remove Relaxing2 too, wait.. fuck autopilot nobody plays it
-            codes.RemoveAt(663); // remove ldsfld
-            codes.Insert(663, // insert ShowMisses 
-                new CodeInstruction(OpCodes.Call, 
-                typeof(PatchRelaxMiss).GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)));
-
+            codes.RemoveAt(664);
+            codes.InsertRange(665, new CodeInstruction[]
+            {
+                new CodeInstruction(OpCodes.Or),
+                new CodeInstruction(OpCodes.Call,
+                    typeof(PatchRelaxMiss)
+                    .GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)),
+                new CodeInstruction(OpCodes.And)
+            });
 
             return codes.AsEnumerable();
         }
