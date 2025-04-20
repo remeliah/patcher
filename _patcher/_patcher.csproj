@@ -52,6 +52,7 @@
     <Compile Include="Options\FontAwesome.cs" />
     <Compile Include="Options\Options.cs" />
     <Compile Include="Options\Section.cs" />
+    <Compile Include="Options\TextBox.cs" />
     <Compile Include="patch\GameBase.cs" />
     <Compile Include="utils\BaseConfig.cs" />
     <Compile Include="utils\Logger.cs" />

@@ -22,6 +22,12 @@ namespace _patcher
             set => _patchRelax = value; 
         }
 
+        private int _transitionTime = 200;
+        public int transitionTime
+        {
+            get => _transitionTime;
+            set => _transitionTime = value;
+        }
         #endregion
 
         internal static Config _load()
