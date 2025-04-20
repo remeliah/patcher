@@ -16,8 +16,8 @@ namespace _patcher.Options
                 "Removes relax/autopilot limitation, Allows you to see miss, Combo break sound and ranking panel.",
                 config.PatchRelax,
                 new EventHandler(config.TogglePatchRelax));
-            TextBox transitionTime = new TextBox("Transition Time",
-                config.transitionTime.ToString());
+            /*TextBox transitionTime = new TextBox("Transition Time",
+                config.TransitionTime.ToString());*/
             /*
             CheckBox csChanger = new CheckBox("0.0 Circle Size",
                 "Makes Circle Size on maps to 0 (Disables score submission!)",
@@ -30,8 +30,8 @@ namespace _patcher.Options
                 new EventHandler(config.ToggleDisableScoreSub));
             */
             Array optionsChildren = Element.createArray(
-                alwaysShowMisses,
-                transitionTime);
+                alwaysShowMisses
+                /*transitionTime*/);
                 //csChanger,
                 //disableScoreSub);
 

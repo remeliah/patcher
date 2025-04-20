@@ -22,8 +22,8 @@ namespace _patcher
             set => _patchRelax = value; 
         }
 
-        private int _transitionTime = 200;
-        public int transitionTime
+        private float _transitionTime = 200;
+        public float TransitionTime
         {
             get => _transitionTime;
             set => _transitionTime = value;

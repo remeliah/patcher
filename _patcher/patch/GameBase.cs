@@ -5,6 +5,8 @@ using System.Reflection.Emit;
 using System.Reflection;
 using _patcher.Helpers;
 using HarmonyLib;
+using _patcher.Options;
+using System.Runtime.CompilerServices;
 namespace _patcher.patch
 {
     internal class GameBase
@@ -64,9 +66,14 @@ namespace _patcher.patch
         {
             var codes = new List<CodeInstruction>(instructions);
             codes.RemoveAt(127);
-            codes.Insert(127, new CodeInstruction(OpCodes.Ldc_R8, 200d));
+            codes.Insert(127, new CodeInstruction(OpCodes.Call,
+                typeof(PatchTransition)
+                .GetMethod(nameof(TransitionTime), BindingFlags.Public | BindingFlags.Static)));
 
             return codes.AsEnumerable();
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float TransitionTime() => Options.Options.config.TransitionTime;
     }
 }

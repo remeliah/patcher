@@ -15,12 +15,10 @@ namespace _patcher.utils
                 object value = propertyInfo.GetValue(this);
                 if (value != null)
                 {
-                    // if the property a string, ensure its not empty before writing
-                    string text = value as string;
-                    if (text == null || text.Length != 0)
-                    {
-                        writer.WriteLine($"{propertyInfo.Name}={value}");
-                    }
+                    if (value is string str)
+                        if (str.Length == 0) continue;
+                    
+                    writer.WriteLine($"{propertyInfo.Name}={value}");
                 }
             }
         }
