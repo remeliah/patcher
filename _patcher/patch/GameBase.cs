@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Reflection;
 using _patcher.Helpers;
+using HarmonyLib;
 namespace _patcher.patch
 {
     internal class GameBase
@@ -31,5 +32,41 @@ namespace _patcher.patch
         public static void BeginExit(
             bool forceConfirm = false)
          => BaseBeginExit.Invoke(null, new object[] { forceConfirm });
+    }
+
+    [HarmonyPatch]
+    internal class PatchTransition
+    {
+        /// <summary>
+        /// Updates the transition time for the game
+        /// 100 -> 200
+        /// </summary>
+        private static readonly OpCode[] Signature = new[]
+        {
+            OpCodes.Ldsfld,
+            OpCodes.Ldc_I4_2,
+            OpCodes.Bne_Un_S,
+            OpCodes.Ldsfld,
+            OpCodes.Ldc_R8,
+            OpCodes.Ble_Un,
+            OpCodes.Ldsfld,
+            OpCodes.Call,
+            OpCodes.Brfalse_S,
+            OpCodes.Ldsfld,
+            OpCodes.Callvirt
+        };
+
+        [HarmonyTargetMethod]
+        private static MethodBase Target() => ILPatch.FindMethodBySignature(Signature);
+
+        [HarmonyTranspiler]
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+            codes.RemoveAt(127);
+            codes.Insert(127, new CodeInstruction(OpCodes.Ldc_R8, 200d));
+
+            return codes.AsEnumerable();
+        }
     }
 }
