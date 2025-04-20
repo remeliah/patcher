@@ -44,7 +44,7 @@ namespace _patcher.patch
             {
                 new CodeInstruction(OpCodes.Or),
                 new CodeInstruction(OpCodes.Call,
-                    typeof(PatchRelaxMiss)
+                    typeof(PatchRelaxComboBreak)
                     .GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)),
                 new CodeInstruction(OpCodes.And)
             });
