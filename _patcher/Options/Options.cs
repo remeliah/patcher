@@ -16,7 +16,7 @@ namespace _patcher.Options
                 "Removes relax limitation, Allows you to see miss and Combo break sound.",
                 config.PatchRelax,
                 new EventHandler(config.TogglePatchRelax));
-
+            /*
             CheckBox csChanger = new CheckBox("0.0 Circle Size",
                 "Makes Circle Size on maps to 0 (Disables score submission!)",
                 config.csChange,
@@ -26,11 +26,11 @@ namespace _patcher.Options
                 "Prevents score submitting when activated.",
                 config.DisableScoreSubmission,
                 new EventHandler(config.ToggleDisableScoreSub));
-
+            */
             Array optionsChildren = Element.createArray(
-                alwaysShowMisses, 
-                csChanger,
-                disableScoreSub);
+                alwaysShowMisses);
+                //csChanger,
+                //disableScoreSub);
 
             Section section = new Section("Patches");
             section.SetChildren(optionsChildren);

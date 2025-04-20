@@ -22,19 +22,6 @@ namespace _patcher
             set => _patchRelax = value; 
         }
 
-        private bool _csChange = false;
-        public bool csChange 
-        { 
-            get => _csChange; 
-            set => _csChange = value;
-        }
-
-        private bool _disableScoreSub = false;
-        public bool DisableScoreSubmission 
-        { 
-            get => _disableScoreSub; 
-            set => _disableScoreSub = value; 
-        }
         #endregion
 
         internal static Config _load()
@@ -67,7 +54,5 @@ namespace _patcher
         }
 
         public void TogglePatchRelax(object sender, EventArgs e) => ToggleSetting(ref _patchRelax);
-        public void ToggleCsChange(object sender, EventArgs e) => ToggleSetting(ref _csChange);
-        public void ToggleDisableScoreSub(object sender, EventArgs e) => ToggleSetting(ref _csChange);
     }
 }

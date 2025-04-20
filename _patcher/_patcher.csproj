@@ -53,7 +53,6 @@
     <Compile Include="Options\Options.cs" />
     <Compile Include="Options\Section.cs" />
     <Compile Include="patch\GameBase.cs" />
-    <Compile Include="patch\Score.cs" />
     <Compile Include="utils\BaseConfig.cs" />
     <Compile Include="utils\Logger.cs" />
     <Compile Include="Main.cs" />

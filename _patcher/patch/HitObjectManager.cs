@@ -14,6 +14,7 @@ namespace _patcher.patch
     /// TODO: this shouldnt exist? used this only to have fun offline..
     /// maybe remove or.. put this on options in the future
     /// </summary>
+    /*
     [HarmonyPatch]
     internal class HitObjectManager
     {
@@ -66,6 +67,7 @@ namespace _patcher.patch
             return DifficultyCircleSize;
         }
     }
+    */
 
     /// <summary>
     /// patch relax miss
