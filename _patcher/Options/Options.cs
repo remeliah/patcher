@@ -12,8 +12,8 @@ namespace _patcher.Options
         public static Config config = Config._load();
         public static void InitializeOptions(object instance)
         {
-            CheckBox alwaysShowMisses = new CheckBox("Patch Relax",
-                "Removes relax limitation, Allows you to see miss and Combo break sound.",
+            CheckBox alwaysShowMisses = new CheckBox("Patch Relax/Autopilot",
+                "Removes relax/autopilot limitation, Allows you to see miss, Combo break sound and ranking panel.",
                 config.PatchRelax,
                 new EventHandler(config.TogglePatchRelax));
             /*

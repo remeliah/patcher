@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Reflection;
 using _patcher.Helpers;
+using System.Runtime.CompilerServices;
 
 namespace _patcher.patch
 {
@@ -63,9 +64,24 @@ namespace _patcher.patch
         {
             var codes = new List<CodeInstruction>(instructions);
 
-            // TODO: use patchrelax to check
-            codes.RemoveRange(10, 24);
+            codes.InsertRange(33, new[]
+            {
+                new CodeInstruction(OpCodes.Call, typeof(PatchAutoSaveRelaxScores)
+                    .GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)),
+                new CodeInstruction(OpCodes.And)
+            });
+
+            codes.InsertRange(21, new[]
+            {
+                new CodeInstruction(OpCodes.Call, typeof(PatchAutoSaveRelaxScores)
+                    .GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)),
+                new CodeInstruction(OpCodes.And)
+            });
+
             return codes.AsEnumerable();
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool PatchRelax() => !Options.Options.config.PatchRelax;
     }
 }
