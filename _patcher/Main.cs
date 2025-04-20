@@ -12,11 +12,7 @@ namespace _patcher
         private static Harmony _harmony = new Harmony("osu_patcher.ano");
 
         // entry point
-        public static int Initialize(string st) => main();
-
-        // should i really obfuscate this?
-        [Obfuscation(Feature = "virtualization", Exclude = false)]
-        private static int main()
+        public static int Initialize(string st)
         {
             try
             {
