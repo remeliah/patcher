@@ -36,8 +36,19 @@ namespace _patcher.utils
                 string[] parts = line.Split(new char[] { '=' }, 2);
                 if (parts.Length == 2 && fields.TryGetValue(parts[0], out var propertyInfo))
                 {
-                    object value = Convert.ChangeType(parts[1], propertyInfo.PropertyType);
-                    propertyInfo.SetValue(this, value);
+                    var typ = propertyInfo.PropertyType;
+
+                    try
+                    {
+                        object value = typ.IsEnum
+                            ? Enum.Parse(typ, parts[1])
+                            : Convert.ChangeType(parts[1], typ);
+
+                        propertyInfo.SetValue(this, value);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }
