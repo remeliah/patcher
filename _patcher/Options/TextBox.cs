@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using _patcher.Helpers;
+
 namespace _patcher.Options
 {
     internal class TextBox : Element

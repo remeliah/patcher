@@ -22,8 +22,8 @@ namespace _patcher
             set => _patchRelax = value; 
         }
 
-        private float _transitionTime = 200;
-        public float TransitionTime
+        private bool _transitionTime = true;
+        public bool TransitionTime
         {
             get => _transitionTime;
             set => _transitionTime = value;
@@ -60,5 +60,6 @@ namespace _patcher
         }
 
         public void TogglePatchRelax(object sender, EventArgs e) => ToggleSetting(ref _patchRelax);
+        public void ToggleTransitionTime(object sender, EventArgs e) => ToggleSetting(ref _transitionTime);
     }
 }

@@ -74,6 +74,12 @@ namespace _patcher.patch
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float TransitionTime() => Options.Options.config.TransitionTime;
+        public static float TransitionTime()
+        {
+            if (!Options.Options.config.TransitionTime) 
+                return 200;
+
+            return 200;
+        }
     }
 }

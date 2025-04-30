@@ -18,6 +18,11 @@ namespace _patcher.Options
                 new EventHandler(config.TogglePatchRelax));
             /*TextBox transitionTime = new TextBox("Transition Time",
                 config.TransitionTime.ToString());*/
+            CheckBox transitionTime = new CheckBox("Faster Transition time",
+                "Control how fast the screen fades in and out. Turn this on for quicker transitions.",
+                config.TransitionTime,
+                new EventHandler(config.ToggleTransitionTime));
+
             /*
             CheckBox csChanger = new CheckBox("0.0 Circle Size",
                 "Makes Circle Size on maps to 0 (Disables score submission!)",
@@ -30,7 +35,8 @@ namespace _patcher.Options
                 new EventHandler(config.ToggleDisableScoreSub));
             */
             Array optionsChildren = Element.createArray(
-                alwaysShowMisses
+                alwaysShowMisses,
+                transitionTime
                 /*transitionTime*/);
                 //csChanger,
                 //disableScoreSub);
@@ -38,7 +44,7 @@ namespace _patcher.Options
             Section section = new Section("Patches");
             section.SetChildren(optionsChildren);
             Array sectionChildren = Element.createArray(section);
-            Category category = new Category(FontAwesome.heart_o, OsuString.TabGameplay);
+            Category category = new Category(FontAwesome.moon_o, OsuString.TabGameplay);
             category.SetChildren(sectionChildren);
 
             // add to elements
