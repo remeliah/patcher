@@ -77,7 +77,7 @@ namespace _patcher.patch
         public static float TransitionTime()
         {
             if (!Options.Options.config.TransitionTime) 
-                return 200;
+                return 100;
 
             return 200;
         }
