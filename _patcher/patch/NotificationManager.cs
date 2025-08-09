@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 using System.Reflection;
 using _patcher.Helpers;
 
-namespace _patcher.patch
+namespace _patcher.Patch
 {
     internal class NotificationManager
     {

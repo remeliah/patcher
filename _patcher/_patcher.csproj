@@ -53,15 +53,15 @@
     <Compile Include="Options\Options.cs" />
     <Compile Include="Options\Section.cs" />
     <Compile Include="Options\TextBox.cs" />
-    <Compile Include="patch\GameBase.cs" />
+    <Compile Include="Patch\GameBase.cs" />
     <Compile Include="utils\BaseConfig.cs" />
     <Compile Include="utils\Logger.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Helpers\Patch.cs" />
-    <Compile Include="patch\HitObjectManager.cs" />
-    <Compile Include="patch\NotificationManager.cs" />
-    <Compile Include="patch\Ruleset.cs" />
-    <Compile Include="patch\Ranking.cs" />
+    <Compile Include="Patch\HitObjectManager.cs" />
+    <Compile Include="Patch\NotificationManager.cs" />
+    <Compile Include="Patch\Ruleset.cs" />
+    <Compile Include="Patch\Ranking.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Helpers\Reader.cs" />
   </ItemGroup>

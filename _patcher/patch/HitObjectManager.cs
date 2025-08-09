@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using _patcher.Helpers;
 
-namespace _patcher.patch
+namespace _patcher.Patch
 {
     /// <summary>
     /// replace Beatmap.DifficultyCircleSize to 0.0

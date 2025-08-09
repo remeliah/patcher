@@ -11,36 +11,75 @@ namespace _patcher.Helpers
             .SingleOrDefault(a => a.GetName().Name == "osu!")
             .GetModules()
             .SingleOrDefault();
+        
+        /// <summary>
+        /// Cari method pake IL Opcodes (kalo match)
+        /// </summary>
+        internal static MethodInfo FindMethodBySignature(OpCode[] signature)
+        {
+            if (signature == null || signature.Length == 0 || OsuModule == null)
+                return null;
 
-        #region goblok
-        internal static MethodInfo FindMethodBySignature(OpCode[] signature) =>
-            signature.Length <= 0 ? null : OsuModule.GetTypes()
-                .SelectMany(type => type.GetRuntimeMethods())
-                .FirstOrDefault(method =>
-                    new ILReader(method.GetMethodBody()?.GetILAsByteArray() ?? Array.Empty<byte>())
-                        .GetOpCodes()
-                        .Aggregate(0, (seq, op) =>
-                            // check kalo urutan opcode cocok sama signature
-                            seq == signature.Length ? seq : // kalo cocok semua, stop
-                                op == signature[seq] ? seq + 1 : // kalo cocok (tapi blm smua), lanjutin ke opcode lain\
-                                0) == signature.Length // kalo urutan opcode udh sesuai sama signature, return method
-                );
+            return OsuModule.GetTypes()
+                .SelectMany(t => t.GetRuntimeMethods())
+                .FirstOrDefault(m =>
+                {
+                    var b = m.GetMethodBody()?.GetILAsByteArray();
+                    if (b == null) return false;
 
-        public static ConstructorInfo FindConstructorBySignature(OpCode[] signature) =>
-            // logicnya sama kaya FindMethodBySignature, cuma ini buat constructor
-            signature.Length <= 0 ? null : OsuModule.GetTypes()
-                .SelectMany(t => t.GetConstructors(BindingFlags.Instance | 
-                                                    BindingFlags.Static | 
-                                                    BindingFlags.Public | 
-                                                    BindingFlags.NonPublic))
-                .FirstOrDefault(m => m.GetMethodBody()?.GetILAsByteArray() is byte[] instr &&
-                    new ILReader(instr)
-                        .GetOpCodes()
-                        .Aggregate((0, false), (acc, op) =>
-                                acc.Item2 ? acc : (op == signature[acc.Item1] ?
-                                    (acc.Item1 + 1 >= signature.Length ? (acc.Item1, true) : (acc.Item1 + 1, false)) :
-                                    (0, false))).Item2
-                );
-        #endregion
+                    var opcodes = new ILReader(b).GetOpCodes();
+                    int idx = 0;
+
+                    foreach (var op in opcodes)
+                    {
+                        if (op == signature[idx])
+                        {
+                            idx++;
+                            if (idx == signature.Length) return true;
+                        }
+                        else
+                            idx = 0;
+                    }
+
+                    return false;
+                });
+        }
+
+        /// <summary>
+        /// Cari constructor pake IL Opcodes (kalo match)
+        /// </summary>
+        public static ConstructorInfo FindConstructorBySignature(OpCode[] signature)
+        {
+            if (signature == null || signature.Length == 0 || OsuModule == null)
+                return null;
+
+            return OsuModule.GetTypes()
+                .SelectMany(t => t.GetConstructors(
+                    BindingFlags.Instance |
+                    BindingFlags.Static |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic))
+                .FirstOrDefault(ctor =>
+                {
+                    var b = ctor.GetMethodBody()?.GetILAsByteArray();
+                    if (b == null) return false;
+
+                    var opcodes = new ILReader(b).GetOpCodes();
+                    int idx = 0;
+
+                    foreach (var op in opcodes)
+                    {
+                        if (op == signature[idx])
+                        {
+                            idx++;
+                            if (idx == signature.Length) return true;
+                        }
+                        else
+                            idx = 0;
+                    }
+
+                    return false;
+                });
+        }
     }
 }

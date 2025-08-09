@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
-using _patcher.patch;
+using _patcher.Patch;
 using _patcher.utils;
 using HarmonyLib;
 
@@ -18,6 +17,7 @@ namespace _patcher
             {
                 // server checks so they dont get banned on bancho
                 var args = Environment.GetCommandLineArgs();
+#if Debug
                 if (!args.Contains("-devserver") || string.IsNullOrEmpty(args.SkipWhile(arg => arg != "-devserver")
                     .Skip(1)
                     .FirstOrDefault()) ||
@@ -30,6 +30,7 @@ namespace _patcher
                     GameBase.BeginExit();
                     return 1;
                 }
+#endif
 
                 // now patchall
                 _harmony.PatchAll(typeof(Main).Assembly);

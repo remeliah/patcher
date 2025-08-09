@@ -1,4 +1,4 @@
-﻿using _patcher.patch;
+﻿using _patcher.Patch;
 using HarmonyLib;
 using System.Reflection;
 

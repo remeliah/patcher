@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using _patcher.Helpers;
 
-namespace _patcher.patch
+namespace _patcher.Patch
 {
     /// <summary>
     /// patch relax combo break

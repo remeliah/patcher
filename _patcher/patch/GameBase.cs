@@ -7,7 +7,8 @@ using _patcher.Helpers;
 using HarmonyLib;
 using _patcher.Options;
 using System.Runtime.CompilerServices;
-namespace _patcher.patch
+
+namespace _patcher.Patch
 {
     internal class GameBase
     {

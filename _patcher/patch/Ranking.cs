@@ -6,7 +6,7 @@ using System.Reflection;
 using _patcher.Helpers;
 using System.Runtime.CompilerServices;
 
-namespace _patcher.patch
+namespace _patcher.Patch
 {
     /// <summary>
     /// patch relax's ranking score screen
