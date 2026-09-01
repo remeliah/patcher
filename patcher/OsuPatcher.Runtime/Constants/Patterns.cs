@@ -223,24 +223,32 @@ namespace OsuPatcher.Runtime.Constants
         };
 
         // osu.GameplayElements.HitObjectManager::Hit
-        /*
-           if (#=zM8XZInS60bPkwTMTkrfebdLZOZcSyFcV90Pe2PH5kYLP == (#=zM8XZInS60bPkwTMTkrfebdLZOZcSyFcV90Pe2PH5kYLP)(-131072) &&
-           !#=zS_AS2zptucP0wp1z7HOrPzQb$3ab.#=z98ZION9Ll4et$efEiA== &&
-           !#=zS_AS2zptucP0wp1z7HOrPzQb$3ab.#=zcxdiu2iP13Mis9wLlw==)
-         */
         public static readonly OpCode[] PatchRelaxMiss_Target = new[]
         {
             OpCodes.Ldarg_1,
-            OpCodes.Ldc_I4_8,
+            OpCodes.Ldfld,
+            OpCodes.Brfalse_S,
+            OpCodes.Ldc_I4_0,
+            OpCodes.Ret,
+            OpCodes.Ldarg_0,
+            OpCodes.Ldarg_1,
+            OpCodes.Stfld,
+            OpCodes.Ldarg_1,
+            OpCodes.Callvirt,
+            OpCodes.Stloc_0,
+            OpCodes.Ldarg_0,
+            OpCodes.Ldfld,
+            OpCodes.Ldarg_1,
             OpCodes.Callvirt,
             OpCodes.Stloc_S,
-            OpCodes.Ldloc_0,
-            OpCodes.Ldc_I4,
-            OpCodes.Bne_Un,
-            OpCodes.Ldsfld,
-            OpCodes.Brtrue,
-            OpCodes.Ldsfld,
-            OpCodes.Brtrue
+            OpCodes.Ldarg_0,
+            OpCodes.Ldloc_S,
+            OpCodes.Ldc_I4_0,
+            OpCodes.Blt_S,
+            OpCodes.Ldloc_S,
+            OpCodes.Br_S,
+            OpCodes.Ldloc_S,
+            OpCodes.Not
         };
 
         // LocalisationManager.GetString(OsuString stringType)

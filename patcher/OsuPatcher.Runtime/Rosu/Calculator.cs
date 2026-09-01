@@ -1,5 +1,6 @@
 using OsuPatcher.Runtime.Rosu.FFI;
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -39,6 +40,9 @@ namespace OsuPatcher.Runtime.Rosu
         private Sliceu8 _beatmapSlice;
         private bool _disposed;
 
+        private static readonly ConcurrentDictionary<Type, FieldInfo[]> _ushortFieldsCache =
+            new ConcurrentDictionary<Type, FieldInfo[]>();
+
         public Calculator(object beatmap, MethodInfo getBeatmapStream, object mods)
         {
             _beatmap = beatmap;
@@ -59,8 +63,18 @@ namespace OsuPatcher.Runtime.Rosu
 
                 if (stream.CanSeek)
                 {
-                    _cachedBeatmap = new byte[stream.Length];
-                    stream.Read(_cachedBeatmap, 0, (int)stream.Length);
+                    int length = (int)stream.Length;
+                    _cachedBeatmap = new byte[length];
+
+                    int totalRead = 0;
+                    while (totalRead < length)
+                    {
+                        int read = stream.Read(_cachedBeatmap, totalRead, length - totalRead);
+                        if (read == 0)
+                            break;
+
+                        totalRead += read;
+                    }
                 }
                 else
                 {
@@ -79,6 +93,21 @@ namespace OsuPatcher.Runtime.Rosu
             }
         }
 
+        private static FieldInfo[] GetUshortFields(Type scoreType)
+        {
+            FieldInfo[] cached;
+            if (_ushortFieldsCache.TryGetValue(scoreType, out cached))
+                return cached;
+
+            FieldInfo[] fields = scoreType
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(f => f.FieldType == typeof(ushort))
+                .ToArray();
+
+            _ushortFieldsCache[scoreType] = fields;
+            return fields;
+        }
+
         public double CalculateScore(object score, float accuracy, int legacyScore, int maxCombo, int playMode)
         {
             if (_disposed)
@@ -87,8 +116,7 @@ namespace OsuPatcher.Runtime.Rosu
             if (_cachedBeatmap == null || _cachedBeatmap.Length == 0)
                 return 0.0;
 
-            var ushortFields = score.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Where(f => f.FieldType == typeof(ushort)).ToArray();
+            var ushortFields = GetUshortFields(score.GetType());
 
             if (ushortFields.Length <= 5)
                 return 0.0;

@@ -47,7 +47,7 @@ namespace OsuPatcher.Runtime.Patches
             var ppText = new pSpriteText("0", "score", 0, 
                 Fields.TopLeft, Origins.Custom, Clocks.Game, 0, 130, 0.92f, true, Color.White, true, SkinSource.All);
             ppText.TextConstantSpacing = true;
-            ppText.Scale = 1.1f;
+            ppText.Scale = 1.1f; //todo: configurate
             ppText.RefreshTexture();
 
             SpriteManager.AddToWidescreen(playerInstance, ppText.Instance);

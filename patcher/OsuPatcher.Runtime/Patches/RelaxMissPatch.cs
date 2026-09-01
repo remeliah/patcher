@@ -22,15 +22,13 @@ namespace OsuPatcher.Runtime.Patches
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var codes = new List<CodeInstruction>(instructions);
-            codes.RemoveAt(664);
-            codes.InsertRange(665, new CodeInstruction[]
-            {
-                new CodeInstruction(OpCodes.Or),
-                new CodeInstruction(OpCodes.Call,
-                    typeof(PatchRelaxMiss)
-                    .GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)),
-                new CodeInstruction(OpCodes.And)
-            });
+            codes.RemoveAt(668);
+            codes.Insert(668, new CodeInstruction(
+                OpCodes.Call,
+                typeof(PatchRelaxMiss)
+                    .GetMethod(nameof(PatchRelax), BindingFlags.Public | BindingFlags.Static)
+            ));
+            codes.RemoveRange(670, 2);
 
             return codes.AsEnumerable();
         }
