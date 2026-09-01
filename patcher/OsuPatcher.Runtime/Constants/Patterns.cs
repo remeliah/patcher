@@ -424,6 +424,34 @@ namespace OsuPatcher.Runtime.Constants
             OpCodes.Ldc_I4_1
         };
 
+        public static readonly OpCode[] Scrobbler_Target = new[]
+        {
+            OpCodes.Ldsfld,
+            OpCodes.Brfalse_S,
+            OpCodes.Call,
+            OpCodes.Ldc_I4,
+            OpCodes.Bgt_S,
+            OpCodes.Ldsfld,
+            OpCodes.Brtrue_S,
+            OpCodes.Ldsfld,
+            OpCodes.Brtrue_S,
+            OpCodes.Ldsflda,
+            OpCodes.Call,
+            OpCodes.Brtrue_S,
+            OpCodes.Ret,
+            OpCodes.Call,
+            OpCodes.Brtrue_S,
+            OpCodes.Call,
+            OpCodes.Ldsfld,
+            OpCodes.Beq_S,
+            OpCodes.Call,
+            OpCodes.Stsfld,
+            OpCodes.Ldc_I4_0,
+            OpCodes.Stsfld,
+            OpCodes.Ldc_R8,
+            OpCodes.Stsfld
+        };
+
         public static readonly OpCode[] TextureManager_Load = new[]
         {
             OpCodes.Ldarg_0,

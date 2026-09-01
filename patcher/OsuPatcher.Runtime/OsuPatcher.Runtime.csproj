@@ -67,6 +67,7 @@
     <Compile Include="Patches\PerformanceCalculationPatch.cs" />
     <Compile Include="Patches\PlayerOnLoadCompletePatch.cs" />
     <Compile Include="Patches\PlayerUpdatePatch.cs" />
+    <Compile Include="Patches\ScrobblerPatch.cs" />
     <Compile Include="Patches\TransitionPatch.cs" />
     <Compile Include="Patches\LocalisationPatch.cs" />
     <Compile Include="Rosu\Calculator.cs" />
