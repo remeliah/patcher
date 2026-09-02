@@ -1,0 +1,19 @@
+[package]
+name = "refx-ffi"
+version = "0.1.2"
+edition = "2021"
+authors = ["remeliah <anoletenu@gmail.com>"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+interoptopus = "0.14.14"
+akatsuki-pp-1-0-1 = { package = "akatsuki-pp", git = "https://github.com/osuAkatsuki/akatsuki-pp-rs", rev = "b96019f50aa7d09bcbde60016481a69df04315e4" }
+akatsuki-pp-1-1-2 = { package = "akatsuki-pp", git = "https://github.com/osuAkatsuki/akatsuki-pp-rs", rev = "591de0db4948f2c504ca6e2ca3db442f09103ef1" }
+refx-pp = { package = "refx-pp", git = "https://github.com/refx-online/refx-pp-rs", rev = "62b0c534068f8d9a9cc16521e85e3f69256e6f7a" }
+
+[dev-dependencies]
+interoptopus_backend_csharp = "0.14.14"
+interoptopus_backend_c = "0.14.13"
+interoptopus_backend_cpython = "0.14.14"
