@@ -1,4 +1,6 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+#[cfg(windows)]
+use std::os::windows::ffi::OsStrExt;
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 use std::{
@@ -6,13 +8,13 @@ use std::{
     env, fs, io,
     path::{Path, PathBuf},
     process::{Command, Stdio},
+    time::{SystemTime, UNIX_EPOCH},
 };
 use tauri::Manager;
 use thiserror::Error;
 
-const CONFIG_DIR_NAME: &str = "osuPatcher";
+const CONFIG_DIR_NAME: &str = "osu! patcher";
 const CONFIG_FILE_NAME: &str = "config.ini";
-const OSU_PATH_FILE_NAME: &str = "osu-path.txt";
 const DEFAULT_SERVER: &str = "refx.online";
 const PATCHER_DLL: &str = "OsuPatcher.Runtime.dll";
 const PATCHER_CLI_EXE: &str = "patcher-cli.exe";
@@ -20,6 +22,16 @@ const PATCHER_CLI_EXE: &str = "patcher-cli.exe";
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 #[cfg(windows)]
 const DETACHED_PROCESS: u32 = 0x00000008;
+#[cfg(windows)]
+const MOVE_FILE_REPLACE_EXISTING: u32 = 0x00000001;
+#[cfg(windows)]
+const MOVE_FILE_WRITE_THROUGH: u32 = 0x00000008;
+
+#[cfg(windows)]
+#[link(name = "kernel32")]
+extern "system" {
+    fn MoveFileExW(existing_file_name: *const u16, new_file_name: *const u16, flags: u32) -> i32;
+}
 
 #[derive(Debug, Error)]
 enum AppError {
@@ -59,13 +71,15 @@ impl From<AppError> for String {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct PatcherConfig {
     patch_relax: bool,
     transition_time: bool,
     performance_calculator: bool,
+    performance_counter_scale: f64,
     server: String,
+    osu_path: Option<String>,
     path: String,
     artifact_path: String,
     artifact_exists: bool,
@@ -85,7 +99,9 @@ impl Default for PatcherConfig {
             patch_relax: true,
             transition_time: true,
             performance_calculator: true,
+            performance_counter_scale: 1.1,
             server: DEFAULT_SERVER.to_owned(),
+            osu_path: None,
             path: String::new(),
             artifact_path: String::new(),
             artifact_exists: false,
@@ -97,11 +113,6 @@ impl Default for PatcherConfig {
 #[tauri::command]
 fn load_config(app: tauri::AppHandle) -> Result<PatcherConfig, String> {
     load_config_inner(&app).map_err(Into::into)
-}
-
-#[tauri::command]
-fn save_config(app: tauri::AppHandle, config: PatcherConfig) -> Result<PatcherConfig, String> {
-    save_config_inner(&app, &config).map_err(Into::into)
 }
 
 #[tauri::command]
@@ -147,7 +158,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             load_config,
-            save_config,
             open_path,
             detect_osu,
             set_osu_installation,
@@ -175,34 +185,15 @@ fn load_config_inner(app: &tauri::AppHandle) -> Result<PatcherConfig, AppError> 
         parse_config(&config_path)?
     } else {
         created = true;
-        let default = PatcherConfig::default();
-        write_config(&config_path, &default)?;
-        default
+        PatcherConfig::default()
     };
+
+    if created {
+        write_config(&config_path, &config)?;
+    }
 
     hydrate_paths(&mut config, &config_path, &artifact_path, created);
     Ok(config)
-}
-
-fn save_config_inner(
-    app: &tauri::AppHandle,
-    config: &PatcherConfig,
-) -> Result<PatcherConfig, AppError> {
-    let config_path = config_path()?;
-    let artifact_path = artifact_path(app);
-
-    if let Some(parent) = config_path.parent() {
-        fs::create_dir_all(parent).map_err(|source| AppError::CreateDir {
-            path: display_path(parent),
-            source,
-        })?;
-    }
-
-    let mut saved = config.clone();
-    saved.server = normalize_server(Some(saved.server));
-    write_config(&config_path, &saved)?;
-    hydrate_paths(&mut saved, &config_path, &artifact_path, false);
-    Ok(saved)
 }
 
 fn open_path_inner(app: &tauri::AppHandle, kind: &str) -> Result<(), AppError> {
@@ -253,18 +244,15 @@ fn set_osu_installation_inner(path: String) -> Result<OsuState, AppError> {
         });
     }
 
-    let path_file = osu_path_file()?;
-    if let Some(parent) = path_file.parent() {
+    let config_path = config_path()?;
+    if let Some(parent) = config_path.parent() {
         fs::create_dir_all(parent).map_err(|source| AppError::CreateDir {
             path: display_path(parent),
             source,
         })?;
     }
 
-    fs::write(&path_file, display_path(&executable)).map_err(|source| AppError::Write {
-        path: display_path(&path_file),
-        source,
-    })?;
+    update_config_entry(&config_path, "OsuPath", &display_path(&executable))?;
 
     Ok(OsuState {
         path: Some(display_path(&executable)),
@@ -294,7 +282,7 @@ fn launch_osu_inner(
 ) -> Result<OsuState, AppError> {
     let exe = resolve_osu_path(path)?;
     let server = normalize_server(server);
-    save_server(app, &server)?;
+    save_server(&server)?;
 
     let mut command = Command::new(&exe);
     if let Some(parent) = exe.parent() {
@@ -325,7 +313,7 @@ fn inject_osu_inner(
     let patcher_path = resolve_patcher_artifact(app).ok_or(AppError::PatcherNotFound)?;
     prepare_patcher_dependencies(app, &patcher_path)?;
     let server = normalize_server(server);
-    save_server(app, &server)?;
+    save_server(&server)?;
 
     let cli_path = find_patcher_cli(app).ok_or(AppError::CliNotFound)?;
     let cli_dir = cli_path.parent().unwrap_or_else(|| Path::new("."));
@@ -361,42 +349,157 @@ fn inject_osu_inner(
 }
 
 fn parse_config(path: &Path) -> Result<PatcherConfig, AppError> {
-    let content = fs::read_to_string(path).map_err(|source| AppError::Read {
-        path: display_path(path),
-        source,
-    })?;
-
-    let entries = content
-        .lines()
-        .filter_map(|line| line.split_once('='))
-        .map(|(key, value)| (key.trim().to_owned(), value.trim().to_owned()))
-        .collect::<BTreeMap<_, _>>();
+    let entries = read_config_entries(path)?;
 
     Ok(PatcherConfig {
         patch_relax: read_bool(&entries, "PatchRelax", true),
         transition_time: read_bool(&entries, "TransitionTime", true),
         performance_calculator: read_bool(&entries, "PerformanceCalculator", true),
+        performance_counter_scale: read_f64(&entries, "PerformanceCounterScale", 1.1),
         server: read_string(&entries, "Server", DEFAULT_SERVER),
+        osu_path: read_optional_string(&entries, "OsuPath"),
         ..PatcherConfig::default()
     })
 }
 
 fn write_config(path: &Path, config: &PatcherConfig) -> Result<(), AppError> {
-    let content = format!(
-        "PatchRelax={}\nTransitionTime={}\nPerformanceCalculator={}\nServer={}\n",
-        config.patch_relax, config.transition_time, config.performance_calculator, config.server
-    );
+    let mut entries = if path.exists() {
+        read_config_entries(path)?
+    } else {
+        BTreeMap::new()
+    };
 
-    fs::write(path, content).map_err(|source| AppError::Write {
+    entries.insert("PatchRelax".to_owned(), config.patch_relax.to_string());
+    entries.insert(
+        "TransitionTime".to_owned(),
+        config.transition_time.to_string(),
+    );
+    entries.insert(
+        "PerformanceCalculator".to_owned(),
+        config.performance_calculator.to_string(),
+    );
+    entries.insert(
+        "PerformanceCounterScale".to_owned(),
+        config.performance_counter_scale.to_string(),
+    );
+    entries.insert("Server".to_owned(), config.server.clone());
+
+    if let Some(osu_path) = config
+        .osu_path
+        .as_ref()
+        .filter(|value| !value.trim().is_empty())
+    {
+        entries.insert("OsuPath".to_owned(), osu_path.trim().to_owned());
+    } else {
+        entries.remove("OsuPath");
+    }
+
+    write_config_entries(path, entries)
+}
+
+fn read_config_entries(path: &Path) -> Result<BTreeMap<String, String>, AppError> {
+    let content = fs::read_to_string(path).map_err(|source| AppError::Read {
         path: display_path(path),
         source,
-    })
+    })?;
+
+    Ok(content
+        .lines()
+        .filter_map(|line| line.split_once('='))
+        .map(|(key, value)| (key.trim().to_owned(), value.trim().to_owned()))
+        .filter(|(key, _)| !key.is_empty())
+        .collect())
+}
+
+fn update_config_entry(path: &Path, key: &str, value: &str) -> Result<(), AppError> {
+    let mut entries = if path.exists() {
+        read_config_entries(path)?
+    } else {
+        BTreeMap::new()
+    };
+    entries.insert(key.to_owned(), value.to_owned());
+    write_config_entries(path, entries)
+}
+
+fn write_config_entries(path: &Path, entries: BTreeMap<String, String>) -> Result<(), AppError> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|source| AppError::CreateDir {
+            path: display_path(parent),
+            source,
+        })?;
+    }
+
+    let content = entries
+        .into_iter()
+        .map(|(key, value)| format!("{key}={value}\n"))
+        .collect::<String>();
+
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let temporary_path = path.with_extension(format!("{}.{}.tmp", std::process::id(), nonce));
+
+    fs::write(&temporary_path, content).map_err(|source| AppError::Write {
+        path: display_path(&temporary_path),
+        source,
+    })?;
+
+    if let Err(source) = replace_config_file(&temporary_path, path) {
+        let _ = fs::remove_file(&temporary_path);
+        return Err(AppError::Write {
+            path: display_path(path),
+            source,
+        });
+    }
+
+    Ok(())
+}
+
+#[cfg(windows)]
+fn replace_config_file(source: &Path, destination: &Path) -> io::Result<()> {
+    let source = source
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect::<Vec<_>>();
+    let destination = destination
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect::<Vec<_>>();
+    let result = unsafe {
+        MoveFileExW(
+            source.as_ptr(),
+            destination.as_ptr(),
+            MOVE_FILE_REPLACE_EXISTING | MOVE_FILE_WRITE_THROUGH,
+        )
+    };
+
+    if result == 0 {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(not(windows))]
+fn replace_config_file(source: &Path, destination: &Path) -> io::Result<()> {
+    fs::rename(source, destination)
 }
 
 fn read_bool(entries: &BTreeMap<String, String>, key: &str, default: bool) -> bool {
     entries
         .get(key)
         .and_then(|value| value.parse::<bool>().ok())
+        .unwrap_or(default)
+}
+
+fn read_f64(entries: &BTreeMap<String, String>, key: &str, default: f64) -> f64 {
+    entries
+        .get(key)
+        .and_then(|value| value.parse::<f64>().ok())
+        .filter(|value| value.is_finite())
         .unwrap_or(default)
 }
 
@@ -409,11 +512,16 @@ fn read_string(entries: &BTreeMap<String, String>, key: &str, default: &str) -> 
         .to_owned()
 }
 
-fn save_server(app: &tauri::AppHandle, server: &str) -> Result<(), AppError> {
-    let mut config = load_config_inner(app)?;
-    config.server = server.to_owned();
-    save_config_inner(app, &config)?;
-    Ok(())
+fn read_optional_string(entries: &BTreeMap<String, String>, key: &str) -> Option<String> {
+    entries
+        .get(key)
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
+}
+
+fn save_server(server: &str) -> Result<(), AppError> {
+    update_config_entry(&config_path()?, "Server", server)
 }
 
 fn hydrate_paths(
@@ -430,10 +538,6 @@ fn hydrate_paths(
 
 fn config_path() -> Result<PathBuf, AppError> {
     Ok(config_dir()?.join(CONFIG_FILE_NAME))
-}
-
-fn osu_path_file() -> Result<PathBuf, AppError> {
-    Ok(config_dir()?.join(OSU_PATH_FILE_NAME))
 }
 
 fn config_dir() -> Result<PathBuf, AppError> {
@@ -462,9 +566,9 @@ fn find_osu_executable() -> Option<PathBuf> {
 }
 
 fn saved_osu_executable() -> Option<PathBuf> {
-    let path_file = osu_path_file().ok()?;
-    let saved = fs::read_to_string(path_file).ok()?;
-    let executable = PathBuf::from(saved.trim());
+    let config_path = config_path().ok()?;
+    let config = parse_config(&config_path).ok()?;
+    let executable = PathBuf::from(config.osu_path?);
     executable.is_file().then_some(executable)
 }
 

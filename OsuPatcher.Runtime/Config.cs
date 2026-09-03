@@ -1,43 +1,25 @@
 using System;
-using System.IO;
-using OsuPatcher.Runtime.Utils;
+using OsuPatcher.Shared;
 
 namespace OsuPatcher.Runtime
 {
-    internal class Config : BaseConfig
+    internal class Config
     {
-        private const string ConfigFileName = "config.ini";
-        private static readonly string ConfigPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osuPatcher");
-
-        public delegate void ConfigChangedHandler();
-        public event ConfigChangedHandler OnConfigChanged;
-
         public bool PatchRelax { get; set; } = true;
         public bool TransitionTime { get; set; } = true;
         public bool PerformanceCalculator { get; set; } = true;
-        public string Server { get; set; } = "refx.online";
+        public double PerformanceCounterScale { get; set; } = 1.1;
 
         internal static Config _load()
         {
-            Directory.CreateDirectory(ConfigPath);
-            string fullPath = Path.Combine(ConfigPath, ConfigFileName);
-            Config config = new Config();
-
-            if (File.Exists(fullPath))
-                using (var reader = new StreamReader(fullPath))
-                    config._loadConfig(reader);
-            else
-                config._save();
-
-            return config;
-        }
-
-        private void _save()
-        {
-            string fullPath = Path.Combine(ConfigPath, ConfigFileName);
-            using (var writer = new StreamWriter(fullPath, false))
-                _saveConfig(writer);
+            ConfigStore store = ConfigStore.Load();
+            return new Config
+            {
+                PatchRelax = store.GetBool(nameof(PatchRelax), true),
+                TransitionTime = store.GetBool(nameof(TransitionTime), true),
+                PerformanceCalculator = store.GetBool(nameof(PerformanceCalculator), true),
+                PerformanceCounterScale = store.GetDouble(nameof(PerformanceCounterScale), 1.1)
+            };
         }
 
         private void ToggleSetting(string propName)
@@ -51,13 +33,17 @@ namespace OsuPatcher.Runtime
             var curr = (bool)prop.GetValue(this);
             prop.SetValue(this, !curr);
 
-            _save();
-            
-            OnConfigChanged?.Invoke();
+            ConfigStore.Update(ConfigStore.DefaultPath, propName, !curr);
         }
 
         public void TogglePatchRelax(object sender, EventArgs e) => ToggleSetting(nameof(PatchRelax));
         public void ToggleTransitionTime(object sender, EventArgs e) => ToggleSetting(nameof(TransitionTime));
         public void TogglePerformanceCalculator(object sender, EventArgs e) => ToggleSetting(nameof(PerformanceCalculator));
+
+        public void SetPerformanceCounterScale(double value)
+        {
+            PerformanceCounterScale = value;
+            ConfigStore.Update(ConfigStore.DefaultPath, nameof(PerformanceCounterScale), value);
+        }
     }
 }

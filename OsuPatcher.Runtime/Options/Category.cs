@@ -18,6 +18,6 @@ namespace OsuPatcher.Runtime.Options
         }
 
         private static object CreateCategoryInstance(FontAwesome icon)
-            => BaseCategoryConstructor.Invoke(new object[] { OsuConstants.TryLazer + 1, icon });
+            => BaseCategoryConstructor.Invoke(new object[] { OsuConstants.PatcherCategory, icon });
     }
 }

@@ -42,16 +42,6 @@ namespace OsuPatcher.Runtime.Helpers
         }
 
         /// <summary>
-        /// Gets the Vector2 type from the client's XNA Framework
-        /// </summary>
-        public static Type Vector2Type => _vector2Type;
-
-        /// <summary>
-        /// Gets the Color type from the client's XNA Framework
-        /// </summary>
-        public static Type ColorType => _colorType;
-
-        /// <summary>
         /// Creates a Color from RGBA values
         /// </summary>
         public static object CreateColor(byte r, byte g, byte b, byte a = 255)

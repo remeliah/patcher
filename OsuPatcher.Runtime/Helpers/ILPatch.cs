@@ -23,27 +23,7 @@ namespace OsuPatcher.Runtime.Helpers
 
             return OsuModule.GetTypes()
                 .SelectMany(t => t.GetRuntimeMethods())
-                .FirstOrDefault(m =>
-                {
-                    var b = m.GetMethodBody()?.GetILAsByteArray();
-                    if (b == null) return false;
-
-                    var opcodes = new ILReader(b).GetOpCodes();
-                    int idx = 0;
-
-                    foreach (var op in opcodes)
-                    {
-                        if (op == signature[idx])
-                        {
-                            idx++;
-                            if (idx == signature.Length) return true;
-                        }
-                        else
-                            idx = 0;
-                    }
-
-                    return false;
-                });
+                .FirstOrDefault(m => MatchesSignature(m, signature));
         }
 
         /// <summary>
@@ -60,27 +40,46 @@ namespace OsuPatcher.Runtime.Helpers
                     BindingFlags.Static |
                     BindingFlags.Public |
                     BindingFlags.NonPublic))
-                .FirstOrDefault(ctor =>
+                .FirstOrDefault(ctor => MatchesSignature(ctor, signature));
+        }
+
+        internal static ConstructorInfo FindConstructorByShape(Func<ConstructorInfo, bool> predicate)
+        {
+            if (predicate == null || OsuModule == null)
+                return null;
+
+            return OsuModule.GetTypes()
+                .SelectMany(type => type.GetConstructors(
+                    BindingFlags.Instance |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic))
+                .FirstOrDefault(predicate);
+        }
+
+        internal static bool MatchesSignature(MethodBase method, OpCode[] signature)
+        {
+            if (method == null || signature == null || signature.Length == 0)
+                return false;
+
+            var body = method.GetMethodBody()?.GetILAsByteArray();
+            if (body == null)
+                return false;
+
+            int index = 0;
+            foreach (var opcode in new ILReader(body).GetOpCodes())
+            {
+                if (opcode == signature[index])
                 {
-                    var b = ctor.GetMethodBody()?.GetILAsByteArray();
-                    if (b == null) return false;
+                    if (++index == signature.Length)
+                        return true;
+                }
+                else
+                {
+                    index = opcode == signature[0] ? 1 : 0;
+                }
+            }
 
-                    var opcodes = new ILReader(b).GetOpCodes();
-                    int idx = 0;
-
-                    foreach (var op in opcodes)
-                    {
-                        if (op == signature[idx])
-                        {
-                            idx++;
-                            if (idx == signature.Length) return true;
-                        }
-                        else
-                            idx = 0;
-                    }
-
-                    return false;
-                });
+            return false;
         }
     }
 }

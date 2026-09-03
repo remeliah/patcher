@@ -40,15 +40,15 @@
         <Reference Include="ManagedInjector.Lib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
           <HintPath>..\packages\HoLLy.ManagedInjector.1.0.0\lib\netstandard2.0\ManagedInjector.Lib.dll</HintPath>
         </Reference>
-        <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-          <HintPath>..\packages\Newtonsoft.Json.13.0.4-beta1\lib\net45\Newtonsoft.Json.dll</HintPath>
-        </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="..\OsuPatcher.Shared\ConfigStore.cs">
+          <Link>Shared\ConfigStore.cs</Link>
+        </Compile>
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
@@ -64,7 +64,7 @@
     </Target>
     <PropertyGroup>
         <PostBuildEvent>
-            "$(SolutionDir)packages\ILMerge.3.0.41\tools\net452\ILMerge.exe" /out:"$(TargetDir)patcher-cli.exe" "$(TargetPath)" "$(TargetDir)Iced.dll" "$(TargetDir)ManagedInjector.Lib.dll" "$(TargetDir)Newtonsoft.Json.dll"
+            "$(SolutionDir)packages\ILMerge.3.0.41\tools\net452\ILMerge.exe" /out:"$(TargetDir)patcher-cli.exe" "$(TargetPath)" "$(TargetDir)Iced.dll" "$(TargetDir)ManagedInjector.Lib.dll"
             for %%f in ("$(TargetDir)*.dll", "$(TargetDir)*.pdb", "$(TargetDir)*.exe") do (
             if /I not "%%~nxf"=="patcher-cli.exe" del "%%f"
             )

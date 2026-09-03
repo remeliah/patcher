@@ -4,7 +4,6 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using OsuPatcher.Runtime.Constants;
 using OsuPatcher.Runtime.Helpers;
-using OsuPatcher.Runtime.Utils;
 
 namespace OsuPatcher.Runtime.Options
 {
@@ -36,10 +35,19 @@ namespace OsuPatcher.Runtime.Options
                 Config.PerformanceCalculator,
                 Config.TogglePerformanceCalculator);
 
+            Slider performanceCounterScale = new Slider(
+                OsuConstants.PerformanceCounterScale,
+                Config.PerformanceCounterScale,
+                0.5,
+                2.0,
+                "x",
+                Config.SetPerformanceCounterScale);
+
             Array optionsChildren = Element.CreateArray(
                 alwaysShowMisses,
                 transitionTime,
-                performanceCalculator);
+                performanceCalculator,
+                performanceCounterScale);
 
             Section section = new Section("Patches");
             section.SetChildren(optionsChildren);

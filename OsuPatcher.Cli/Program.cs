@@ -2,19 +2,14 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Diagnostics;
-using System.Net;
-using System.Security.Cryptography;
 using HoLLy.ManagedInjector;
-using Newtonsoft.Json.Linq;
+using OsuPatcher.Shared;
 
 namespace OsuPatcher.Cli
 {
     internal class Program
     {
-        private const string ConfigDirectoryName = "osuPatcher";
-        private const string ConfigFileName = "cli.conf";
         private const string DefaultServer = "refx.online";
-        private const string PatcherUrl = "https://updater.refx.online/patcher";
         private const string RuntimeDllName = "OsuPatcher.Runtime.dll";
         private const string RuntimeEntryType = "OsuPatcher.Runtime.Main";
         private static string ConfigPath;
@@ -27,11 +22,15 @@ namespace OsuPatcher.Cli
             {
                 var options = Options.Parse(args);
                 ConfigPath = GetConfigPath(options.ConfigPath);
+                var config = ConfigStore.Load(ConfigPath);
                 var osuPath = GetOsuPath(options.OsuPath);
                 var patcherPath = GetPatcherPath(options.PatcherPath);
                 var server = string.IsNullOrWhiteSpace(options.Server)
-                    ? DefaultServer
+                    ? config.GetString("Server", DefaultServer)
                     : options.Server.Trim();
+
+                if (!string.IsNullOrWhiteSpace(options.Server))
+                    ConfigStore.Update(ConfigPath, "Server", server);
 
                 var osuProc = Process.Start(new ProcessStartInfo
                 {
@@ -64,11 +63,7 @@ namespace OsuPatcher.Cli
             if (!string.IsNullOrWhiteSpace(providedPath))
                 return Path.GetFullPath(providedPath.Trim('"'));
 
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            if (string.IsNullOrWhiteSpace(localAppData))
-                return Path.GetFullPath(ConfigFileName);
-
-            return Path.Combine(localAppData, ConfigDirectoryName, ConfigFileName);
+            return ConfigStore.DefaultPath;
         }
 
         private static string GetPatcherPath(string providedPath)
@@ -82,22 +77,9 @@ namespace OsuPatcher.Cli
                 return path;
             }
 
-            var artifactDirectory = GetArtifactDirectory();
-            Directory.CreateDirectory(artifactDirectory);
-
-            var patcherPath = Path.Combine(artifactDirectory, RuntimeDllName);
-            var harmonyPath = Path.Combine(artifactDirectory, "0Harmony.dll");
-
-            string json;
-            using (var client = new WebClient())
-                json = client.DownloadString(PatcherUrl);
-            var data = JObject.Parse(json);
-
-            if (!File.Exists(harmonyPath) || !HashMatches(harmonyPath, (string)((JObject)data["0Harmony.dll"])["hash_md5"]))
-                harmonyPath = DownloadPatcher(data, "0Harmony.dll", artifactDirectory);
-
-            if (!File.Exists(patcherPath) || !HashMatches(patcherPath, (string)((JObject)data[RuntimeDllName])["hash_md5"]))
-                patcherPath = DownloadPatcher(data, RuntimeDllName, artifactDirectory);
+            var patcherPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, RuntimeDllName);
+            if (!File.Exists(patcherPath))
+                throw new FileNotFoundException("runtime patcher DLL was not found next to patcher-cli.exe.", patcherPath);
 
             return patcherPath;
         }
@@ -107,15 +89,6 @@ namespace OsuPatcher.Cli
             proc.Inject(patcherPath, RuntimeEntryType, "Initialize");
         }
 
-        private static string GetArtifactDirectory()
-        {
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            if (string.IsNullOrWhiteSpace(localAppData))
-                return Path.GetFullPath("artifacts");
-
-            return Path.Combine(localAppData, ConfigDirectoryName, "artifacts");
-        }
-        
         /// <summary>
         /// retrieves the stored osu!.exe path from <c>ConfigPath</c> / prompts the user to enter it
         /// </summary>
@@ -137,9 +110,11 @@ namespace OsuPatcher.Cli
                 return providedOsuPath;
             }
 
-            if (File.Exists(ConfigPath))
+            var config = ConfigStore.Load(ConfigPath);
+            var savedPath = config.GetString("OsuPath");
+
+            if (!string.IsNullOrWhiteSpace(savedPath))
             {
-                var savedPath = File.ReadAllText(ConfigPath).Trim();
                 if (File.Exists(savedPath))
                     return savedPath;
 
@@ -159,11 +134,7 @@ namespace OsuPatcher.Cli
 
         private static void WriteConfig(string osuPath)
         {
-            var directory = Path.GetDirectoryName(ConfigPath);
-            if (!string.IsNullOrEmpty(directory))
-                Directory.CreateDirectory(directory);
-
-            File.WriteAllText(ConfigPath, osuPath);
+            ConfigStore.Update(ConfigPath, "OsuPath", osuPath);
         }
 
         private sealed class Options
@@ -214,56 +185,5 @@ namespace OsuPatcher.Cli
             }
         }
         
-        /// <summary>
-        /// grabs the dll link from the provided data and downloads it
-        /// </summary>
-        /// <param name="data">json object containing the download url</param>
-        /// <param name="k">key to look up the url</param>
-        /// <returns>path to the downloaded file</returns>
-        /// <exception cref="Exception">throws if the key is missing / empty</exception>
-        private static string DownloadPatcher(JObject data, string k, string directory)
-        {
-            return DownloadPatcher(data, k, directory, k);
-        }
-
-        private static string DownloadPatcher(JObject data, string k, string directory, string outputName)
-        {
-            var obj = data[k] as JObject;
-            if (obj == null)
-                throw new Exception($"'{k}' not found");
-
-            var url = (string)obj["url"];
-            if (string.IsNullOrEmpty(url))
-                throw new Exception($"no 'url' field for '{k}'");
-
-            var filePath = Path.Combine(directory, outputName);
-            Console.WriteLine($"downloading {k} from {url}...");
-
-            using (var client = new WebClient())
-                client.DownloadFile(url, filePath);
-
-            return filePath;
-        }
-        
-        /// <summary>
-        /// checks if hash matches
-        /// </summary>
-        /// <param name="filePath">path of the file</param>
-        /// <param name="expectedHash">expected hash</param>
-        /// <returns></returns>
-        private static bool HashMatches(string filePath, string expectedHash)
-        {
-            if (string.IsNullOrEmpty(expectedHash) || !File.Exists(filePath))
-                return false;
-
-            using (var md5 = MD5.Create())
-            using (var stream = File.OpenRead(filePath))
-            {
-                byte[] hash = md5.ComputeHash(stream);
-                string actual = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                
-                return actual == expectedHash.ToLowerInvariant();
-            }
-        }
     }
 }

@@ -4,23 +4,46 @@ using OsuPatcher.Runtime.Graphics.Sprites;
 using OsuPatcher.Runtime.Helpers;
 using OsuPatcher.Runtime.Wrappers;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace OsuPatcher.Runtime.Graphics
 {
-    internal class pSpriteText : pText
+    internal class pSpriteText
     {
         private static readonly ConstructorInfo BaseSpriteText = ILPatch.FindConstructorBySignature(Patterns.SpriteText_Constructor);
         private static readonly MethodBase BaseRefreshTexture = ILPatch.FindMethodBySignature(Patterns.Text_RefreshTexture);
+        private static readonly Dictionary<Type, MethodInfo> TextSetters = new Dictionary<Type, MethodInfo>();
 
         private static FieldInfo _textConstantSpacingField;
         private static FieldInfo _scaleField;
 
+        public object Instance { get; }
+
         public pSpriteText(string text, string fontname, float spacingOverlap, Fields fieldType, Origins origin, Clocks clock,
                           float posX, float posY, float drawDepth, bool alwaysDraw, Color colour, bool precache = true, SkinSource source = SkinSource.All)
-            : base(CreateSpriteTextInstance(text, fontname, spacingOverlap, fieldType, origin, clock, posX, posY, drawDepth, alwaysDraw, colour, precache, source))
         {
+            Instance = CreateSpriteTextInstance(text, fontname, spacingOverlap, fieldType, origin, clock,
+                posX, posY, drawDepth, alwaysDraw, colour, precache, source);
+        }
+
+        public string Text
+        {
+            set
+            {
+                if (Instance == null)
+                    return;
+
+                var type = Instance.GetType();
+                if (!TextSetters.TryGetValue(type, out var setter))
+                {
+                    setter = ILPatch.FindMethodBySignature(Patterns.Text_Setter);
+                    TextSetters[type] = setter;
+                }
+
+                setter?.Invoke(Instance, new object[] { value });
+            }
         }
 
         public bool TextConstantSpacing
@@ -49,10 +72,11 @@ namespace OsuPatcher.Runtime.Graphics
                     {
                         var floatFields = currentType
                             .GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
-                            .Where(f => f.FieldType == typeof(float) && !f.IsPublic)
+                            .Where(f => f.FieldType == typeof(float))
+                            .OrderBy(f => f.MetadataToken)
                             .ToList();
 
-                        if (floatFields.Count >= 3)
+                        if (floatFields.Count == 4)
                         {
                             _scaleField = floatFields[2];
                             break;
@@ -61,7 +85,8 @@ namespace OsuPatcher.Runtime.Graphics
                         currentType = currentType.BaseType;
                     }
                 }
-                _scaleField.SetValue(Instance, value);
+
+                _scaleField?.SetValue(Instance, value);
             }
         }
 

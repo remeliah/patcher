@@ -137,7 +137,7 @@ namespace OsuPatcher.Runtime.Rosu
             ushort countMiss = (ushort)ushortFields[5].GetValue(score);
             uint passedObjectCount = (uint)(count300 + count100 + count50 + countMiss);
 
-            Optionu32 passedObjects = Optionu32.FromNullable(new uint?(passedObjectCount));
+            Optionu32 passedObjects = new Optionu32(passedObjectCount);
             uint mods = (uint)Convert.ToInt32(_mods);
 
             if (Main.IsRefx)

@@ -15,6 +15,8 @@ namespace OsuPatcher.Runtime.Options
 
         private static readonly ConstructorInfo BaseCheckBox = ILPatch.FindConstructorBySignature(Patterns.CheckBox_Constructor);
 
+        internal static Type BaseElementType => BaseCheckBox?.DeclaringType?.BaseType;
+
         public CheckBox(string title, string tooltip, bool initial, EventHandler onChanged)
             : base(CreateCheckBoxInstance(title, tooltip, initial, onChanged))
         {

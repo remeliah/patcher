@@ -164,43 +164,7 @@ namespace OsuPatcher.Runtime.Constants
             OpCodes.Newobj
         };
 
-        // TextBox Constructor
-        public static readonly OpCode[] TextBox_Constructor = new[]
-        {
-            OpCodes.Ldarg_0,
-            OpCodes.Ldarg_1,
-            OpCodes.Ldarg_3,
-            OpCodes.Call,
-            OpCodes.Ldloc_0,
-            OpCodes.Ldarg_0,
-            OpCodes.Stfld,
-            OpCodes.Ldarg_0,
-            OpCodes.Ldloc_0,
-            OpCodes.Ldfld,
-            OpCodes.Stfld
-        };
-
         #endregion
-
-        // osu.GameBase:BeginExit
-        // #=zTp6JhLFlT$nSTXDxMw==:#=zzb6bonY=
-        public static readonly OpCode[] GameBase_BeginExit = new[]
-        {
-            OpCodes.Ldsfld,
-            OpCodes.Ldfld,
-            OpCodes.Ldsfld,
-            OpCodes.Dup,
-            OpCodes.Brtrue_S,
-            OpCodes.Pop,
-            OpCodes.Ldsfld,
-            OpCodes.Ldftn,
-            OpCodes.Newobj,
-            OpCodes.Dup,
-            OpCodes.Stsfld,
-            OpCodes.Callvirt,
-            OpCodes.Callvirt,
-            OpCodes.Ldc_I4_0
-        };
 
         // Transition Time
         /// <summary>
@@ -361,21 +325,6 @@ namespace OsuPatcher.Runtime.Constants
             OpCodes.Brtrue_S
         };
 
-        public static readonly OpCode[] PlayerInitialize_Target = new[]
-        {
-            OpCodes.Ldarg_0,
-            OpCodes.Call,
-            OpCodes.Stfld,
-            OpCodes.Ldarg_0,
-            OpCodes.Call,
-            OpCodes.Ldc_I4_0,
-            OpCodes.Stsfld,
-            OpCodes.Ldsfld,
-            OpCodes.Ldarg_0,
-            OpCodes.Ldftn,
-            OpCodes.Newobj
-        };
-
         public static readonly OpCode[] PlayerUpdate_Target = new[]
         {
             OpCodes.Ldarg_0,
@@ -390,6 +339,20 @@ namespace OsuPatcher.Runtime.Constants
             OpCodes.Ldarg_0,
             OpCodes.Ldfld,
             OpCodes.Callvirt,
+        };
+
+        public static readonly OpCode[] Score_GetTotalScore = new[]
+        {
+            OpCodes.Ldarg_0,
+            OpCodes.Ldfld,
+            OpCodes.Dup,
+            OpCodes.Brtrue_S,
+            OpCodes.Pop,
+            OpCodes.Ldarg_0,
+            OpCodes.Ldfld,
+            OpCodes.Ret,
+            OpCodes.Callvirt,
+            OpCodes.Ret,
         };
 
         public static readonly OpCode[] PlayerOnLoadComplete_Target = new[]
@@ -450,52 +413,6 @@ namespace OsuPatcher.Runtime.Constants
             OpCodes.Stsfld,
             OpCodes.Ldc_R8,
             OpCodes.Stsfld
-        };
-
-        public static readonly OpCode[] TextureManager_Load = new[]
-        {
-            OpCodes.Ldarg_0,
-            OpCodes.Brtrue_S,
-            OpCodes.Ldnull,
-            OpCodes.Ret,
-            OpCodes.Ldsfld,
-            OpCodes.Brfalse_S,
-            OpCodes.Ldarg_1,
-            OpCodes.Ldc_I4_4,
-            OpCodes.Beq_S,
-            OpCodes.Ldarg_1,
-            OpCodes.Ldc_I4_S,
-            OpCodes.And,
-        };
-
-        public static readonly OpCode[] Sprite_Constructor = new[]
-        {
-            OpCodes.Ldarg_0,
-            OpCodes.Ldarg_S,
-            OpCodes.Call,
-            OpCodes.Ldarg_0,
-            OpCodes.Ldarg_1,
-            OpCodes.Stfld,
-            OpCodes.Ldarg_0,
-            OpCodes.Ldarg_3,
-            OpCodes.Stfld,
-            OpCodes.Ldarg_0,
-            OpCodes.Callvirt,
-            OpCodes.Ldarg_0,
-            OpCodes.Callvirt
-        };
-
-        public static readonly OpCode[] Text_Constructor = new[]
-        {
-            OpCodes.Ldarg_0,
-            OpCodes.Ldc_I4_1,
-            OpCodes.Stfld,
-            OpCodes.Ldarg_0,
-            OpCodes.Ldnull,
-            OpCodes.Ldc_I4_6,
-            OpCodes.Ldc_I4_0,
-            OpCodes.Ldc_I4_0,
-            OpCodes.Ldarg_3
         };
 
         public static readonly OpCode[] Text_Setter = new[]

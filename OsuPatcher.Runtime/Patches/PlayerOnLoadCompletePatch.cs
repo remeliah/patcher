@@ -47,7 +47,7 @@ namespace OsuPatcher.Runtime.Patches
             var ppText = new pSpriteText("0", "score", 0, 
                 Fields.TopLeft, Origins.Custom, Clocks.Game, 0, 130, 0.92f, true, Color.White, true, SkinSource.All);
             ppText.TextConstantSpacing = true;
-            ppText.Scale = 1.1f; //todo: configurate
+            ppText.Scale = (float)Options.Options.Config.PerformanceCounterScale;
             ppText.RefreshTexture();
 
             SpriteManager.AddToWidescreen(playerInstance, ppText.Instance);
@@ -90,7 +90,7 @@ namespace OsuPatcher.Runtime.Patches
             if (modsValue == null)
                 return;
 
-            int mods = (int)modsValue.Invoke(enabledMods, null);
+            int mods = Convert.ToInt32(modsValue.Invoke(enabledMods, null));
 
             var getBeatmapStreamMethod = beatmap.GetType()
                 .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)

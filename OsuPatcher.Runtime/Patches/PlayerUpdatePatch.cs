@@ -85,7 +85,8 @@ namespace OsuPatcher.Runtime.Patches
                     .FirstOrDefault(m =>
                         m.ReturnType == typeof(int) &&
                         m.GetParameters().Length == 0 &&
-                        m.IsVirtual);
+                        m.IsVirtual &&
+                        ILPatch.MatchesSignature(m, Patterns.Score_GetTotalScore));
 
             if (_getLegacyScore == null)
                 return;
@@ -105,7 +106,7 @@ namespace OsuPatcher.Runtime.Patches
             float accuracy = (float)_getAccuracy.Invoke(score, null) * 100f;
             int legacyScore = (int)_getLegacyScore.Invoke(score, null);
             int maxCombo = (int)_maxCombo.GetValue(score);
-            int playMode = (int)_playMode.GetValue(score);
+            int playMode = System.Convert.ToInt32(_playMode.GetValue(score));
 
             PerformanceCalculationPatch.QueueCalculation(score, accuracy, legacyScore, maxCombo, playMode);
         }

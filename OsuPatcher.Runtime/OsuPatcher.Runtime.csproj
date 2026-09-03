@@ -37,21 +37,15 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="..\OsuPatcher.Shared\ConfigStore.cs">
+      <Link>Shared\ConfigStore.cs</Link>
+    </Compile>
     <Compile Include="Constants\OsuConstants.cs" />
     <Compile Include="Constants\Patterns.cs" />
-    <Compile Include="Graphics\pDrawable.cs" />
-    <Compile Include="Graphics\pSprite.cs" />
     <Compile Include="Graphics\pSpriteText.cs" />
-    <Compile Include="Graphics\pText.cs" />
     <Compile Include="Graphics\Skinning\SkinSource.cs" />
     <Compile Include="Graphics\Sprites\Clocks.cs" />
     <Compile Include="Graphics\Sprites\Fields.cs" />
@@ -63,7 +57,7 @@
     <Compile Include="Options\FontAwesome.cs" />
     <Compile Include="Options\Options.cs" />
     <Compile Include="Options\Section.cs" />
-    <Compile Include="Options\TextBox.cs" />
+    <Compile Include="Options\Slider.cs" />
     <Compile Include="Patches\PerformanceCalculationPatch.cs" />
     <Compile Include="Patches\PlayerOnLoadCompletePatch.cs" />
     <Compile Include="Patches\PlayerUpdatePatch.cs" />
@@ -76,7 +70,6 @@
     <Compile Include="Play\Performance.cs" />
     <Compile Include="Resolver\Score.cs" />
     <Compile Include="Resolver\SpriteManager.cs" />
-    <Compile Include="Utils\BaseConfig.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Helpers\ILPatch.cs" />
@@ -84,7 +77,6 @@
     <Compile Include="Patches\OptionsPatch.cs" />
     <Compile Include="Wrappers\Color.cs" />
     <Compile Include="Wrappers\NotificationManager.cs" />
-    <Compile Include="Wrappers\GameBase.cs" />
     <Compile Include="Patches\RelaxComboBreakPatch.cs" />
     <Compile Include="Patches\AutoSaveRelaxScoresPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
